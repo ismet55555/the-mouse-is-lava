@@ -97,8 +97,6 @@ func main() {
 		}
 
 		log.Debug(xInst, yInst, mouseTouch, noMouseTouchTime)
-		// log.Debug(x)
-		// log.Debug(y)
 
 		count++
 

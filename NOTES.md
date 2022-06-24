@@ -27,8 +27,23 @@ A program when started will track how often mouse has been used over time
     - Per session
 
 - Potentially a CLI tool with cobra
--
+
 - Sound when touching mouse? Notification? Something annoying?
+
+- Notification has dorky insults
+    - Need some kind of "database" of these
+    - Depending how long without mouse usage - May turn into praise
+    - Scale from insult to parise
+
+- Instead of immediate change, make less sensative
+    - Have sensitivty setting
+        - how many averages
+        - how big was the change?
+
+- Sevirty of mouse usage
+    - Little change
+
+- Set a goal
 
 
 ## Potential Tools
@@ -48,6 +63,7 @@ A program when started will track how often mouse has been used over time
 - Install robotogo stuff - DONE
 - Try sample code for mouse stuff online - DONE
 - Adjust sample code neatly - DONE
+- Add clicking as well
 - Research go routines, can we apply
 - Find difference from current to previouis iteration (movement)
 
