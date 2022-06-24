@@ -64,8 +64,8 @@ A program when started will track how often mouse has been used over time
 - Try sample code for mouse stuff online - DONE
 - Adjust sample code neatly - DONE
 - Add clicking as well
-- Research go routines, can we apply
-- Find difference from current to previouis iteration (movement)
+- Add system tray icon when running
+- Add sensitivity
 
 
 

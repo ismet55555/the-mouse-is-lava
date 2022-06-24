@@ -103,4 +103,5 @@ func main() {
 		// Loop delay
 		time.Sleep(200 * time.Millisecond)
 	}
+	log.Info("DONE")
 }
