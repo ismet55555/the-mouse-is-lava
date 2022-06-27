@@ -22,6 +22,7 @@ A program when started will track how often mouse has been used over time
     - Keyboard combination (CTRL-ALT-SHIFT-q ?? or something rare like this)
 
 - Pause / Resume Program
+    - Keyboard combination?
 
 - Save statistics in local file?
     - Per session
@@ -29,21 +30,19 @@ A program when started will track how often mouse has been used over time
 - Potentially a CLI tool with cobra
 
 - Sound when touching mouse? Notification? Something annoying?
-
 - Notification has dorky insults
     - Need some kind of "database" of these
     - Depending how long without mouse usage - May turn into praise
     - Scale from insult to parise
 
-- Instead of immediate change, make less sensative
-    - Have sensitivty setting
-        - how many averages
-        - how big was the change?
+- Set a no-mouse touch goals
 
-- Sevirty of mouse usage
-    - Little change
+- Disable when using certain programs
+    - Drawing/CAD
+    - Slack
+    - etc
 
-- Set a goal
+- CLI option for silent, no messages in terminall
 
 
 ## Potential Tools
@@ -54,18 +53,13 @@ A program when started will track how often mouse has been used over time
 - System icon in notification area - systray
 - System notificaiton - beeep
 - Make CLI - cobra
+- Working with configurations - viper
 
 
 ## Plan of Attack
 
-- Create a module - DONE
-- Create main.py with simple print statment - DONE
-- Install robotogo stuff - DONE
-- Try sample code for mouse stuff online - DONE
-- Adjust sample code neatly - DONE
-- Add clicking as well
 - Add system tray icon when running
-- Add sensitivity
+- Make into CLI tool?
 
 
 

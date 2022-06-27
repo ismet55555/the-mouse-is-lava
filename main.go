@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/gen2brain/beeep"
 	"github.com/go-vgo/robotgo"
 	log "github.com/sirupsen/logrus"
@@ -73,11 +74,30 @@ func durationToString(duration time.Duration) string {
 	return fmt.Sprintf("%01d hours : %01d minutes : %01d seconds", hrs, mins, secs)
 }
 
-func main() {
-	fmt.Println("╔╦╗┬ ┬┌─┐  ╔╦╗┌─┐┬ ┬┌─┐┌─┐  ┬┌─┐  ╦  ┌─┐┬  ┬┌─┐")
-	fmt.Println(" ║ ├─┤├┤   ║║║│ ││ │└─┐├┤   │└─┐  ║  ├─┤└┐┌┘├─┤")
-	fmt.Println(" ╩ ┴ ┴└─┘  ╩ ╩└─┘└─┘└─┘└─┘  ┴└─┘  ╩═╝┴ ┴ └┘ ┴ ┴")
+// Display text at a time interval
+func displayTextWithTime(interval float32, text []string) {
+	for _, word := range text {
+		fmt.Println(word)
+		time.Sleep(time.Duration(interval * float32(time.Second)))
+	}
+}
 
+// Display intro title animation
+func showIntroTitle() {
+	color.Green("================================")
+	titleText := []string{"    The", "       mouse", "            is"}
+	for _, word := range titleText {
+		color.Green(word)
+		time.Sleep(time.Duration(1.0 * float32(time.Second)))
+	}
+	color.Red("               ╦  ┌─┐┬  ┬┌─┐")
+	color.Red("               ║  ├─┤└┐┌┘├─┤")
+	color.Red("               ╩═╝┴ ┴ └┘ ┴ ┴")
+	color.Green("================================")
+}
+
+func main() {
+	showIntroTitle()
 	log.Debug("START - Process ID: ", robotgo.GetPID())
 
 	// User defined settings
@@ -111,10 +131,11 @@ func main() {
 
 		// Initial grace period with no mouse touch eveluation
 		if initPause {
-			initTime := time.Now().Sub(initTimerStart)
-			log.Debug("Initial delay: ", initTime, " / ", initGracePeriod)
-			if initTime > time.Duration(initGracePeriod)*time.Second {
-				log.Info("Sensor active")
+			initElapsedTime := time.Now().Sub(initTimerStart)
+			log.Debug("Initial delay: ", initElapsedTime, " / ", initGracePeriod)
+
+			if initElapsedTime > time.Duration(initGracePeriod)*time.Second {
+				fmt.Println("Mouse movement sensor is active ...")
 				initPause = false
 			}
 			time.Sleep(200 * time.Millisecond)
@@ -153,5 +174,4 @@ func main() {
 		// Loop delay
 		time.Sleep(100 * time.Millisecond)
 	}
-	log.Info("DONE")
 }
