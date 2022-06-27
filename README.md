@@ -1,12 +1,14 @@
 # The Mouse is Lava
 
-Don't you touch the mouse... IT'S LAVA!!
+> Don't you touch the mouse... IT'S LAVA!!
+
+If you are trying to not use your mouse, this little program is for you! This program is aimed to help you use your mouse less by sending you a anoying system notification every time you move your mouse. 
 
 ## Try it
 
 1. Ensure `go` version 1.17 or higher is installed
     - `go version`
-    - If not, install it
+    - If not, install it.
 
 2. Build the project
     - `go build`
