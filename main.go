@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"math"
+	"sort"
 	"time"
 
 	"github.com/gen2brain/beeep"
@@ -13,95 +16,142 @@ func init() {
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp: true,
 	})
-	// log.SetLevel(log.DebugLevel)
 	log.SetLevel(log.InfoLevel)
 }
 
-func show_alert() {
+// Alert the user
+func show_alert(title string, message string) {
 	err := beeep.Beep(beeep.DefaultFreq, beeep.DefaultDuration)
 	if err != nil {
 		panic(err)
 	}
-	// err = beeep.Notify("Notify", "Notify body", "assets/information.png")
-	// if err != nil {
-	// panic(err)
-	// }
-	err = beeep.Alert("Damn it!", "You touched the mouse!!", "assets/warning.png")
+	err = beeep.Alert(title, message, "none")
 	if err != nil {
 		panic(err)
 	}
 
 }
 
+// Calculating the mean of a array
+func arrayMean(in []int) float64 {
+	var sum float64 = 0.0
+	for _, item := range in {
+		sum += float64(item)
+	}
+	return sum / float64(len(in))
+}
+
+// Calculate the median of an array
+func arrayMedian(in []int) int {
+	sort.Ints(in)
+	indexHalf := len(in) / 2
+	if len(in)%2 == 0 {
+		return (in[indexHalf-1] + in[indexHalf]) / 2
+	} else {
+		return in[indexHalf]
+	}
+}
+
+// Check if all items in slice are the same
+func arrayAllItemsEqual(in []int) bool {
+	first := in[0]
+	for _, item := range in {
+		if item != first {
+			return false
+		}
+	}
+	return true
+}
+
+// Duration to time string
+func durationToString(duration time.Duration) string {
+	hrs := duration / time.Hour
+	duration -= hrs * time.Hour
+	mins := duration / time.Minute
+	duration -= mins * time.Minute
+	secs := duration / time.Second
+	return fmt.Sprintf("%01d hours : %01d minutes : %01d seconds", hrs, mins, secs)
+}
+
 func main() {
-	log.Info("START - Process ID: ", robotgo.GetPID())
+	fmt.Println("╔╦╗┬ ┬┌─┐  ╔╦╗┌─┐┬ ┬┌─┐┌─┐  ┬┌─┐  ╦  ┌─┐┬  ┬┌─┐")
+	fmt.Println(" ║ ├─┤├┤   ║║║│ ││ │└─┐├┤   │└─┐  ║  ├─┤└┐┌┘├─┤")
+	fmt.Println(" ╩ ┴ ┴└─┘  ╩ ╩└─┘└─┘└─┘└─┘  ┴└─┘  ╩═╝┴ ┴ └┘ ┴ ┴")
 
-	var x = make([]int, 5)
-	var y = make([]int, 5)
+	log.Debug("START - Process ID: ", robotgo.GetPID())
 
-	initGracePeriod := 2
-	initPause := true
+	// User defined settings
+	var (
+		initGracePeriod     int     = 2
+		initPause           bool    = true
+		gracePeriodDuration int     = 3
+		gracePeriod         bool    = false
+		sensitivity         float64 = 10.0
+	)
 
-	pauseGracePeriod := 3
-
-	mouseTouch := false
-	postTouchTimerStart := time.Now()
-	noMouseTouchTime := time.Duration(0)
-	initTimerStart := time.Now()
-
-	count := 0
+	var (
+		magPosSet                          = make([]int, 11)
+		magPos                             = make([]int, 2)
+		magPosMeans                        = make([]float64, 2)
+		initTimerStart       time.Time     = time.Now()
+		postTouchTimerStart  time.Time     = time.Now()
+		triggered            bool          = false
+		totalNoTouchDuration time.Duration = time.Duration(0)
+	)
 
 	for {
-		// Initial grace period
+		// Get the XY mouse pixel coordinates
+		xPos, yPos := robotgo.GetMousePos()
+
+		// Get the magnitude - sqrt(x^2 + y^2)
+		mag := int(math.Sqrt(math.Pow(float64(xPos), 2) + math.Pow(float64(yPos), 2)))
+		magPos = append(magPos, mag)[1:]
+		magPosSet = append(magPosSet, magPos[1])[1:]
+		magPosMeans = append(magPosMeans, arrayMean(magPosSet))[1:]
+
+		// Initial grace period with no mouse touch eveluation
 		if initPause {
 			initTime := time.Now().Sub(initTimerStart)
 			log.Debug("Initial delay: ", initTime, " / ", initGracePeriod)
 			if initTime > time.Duration(initGracePeriod)*time.Second {
+				log.Info("Sensor active")
 				initPause = false
 			}
 			time.Sleep(200 * time.Millisecond)
 			continue
 		}
 
-		// Get the mouse coordinates
-		xInst, yInst := robotgo.GetMousePos()
-
-		// Change in x direction
-		x = append(x, xInst)
-		x = x[1:]
-		x_change := x[len(x)-1] - x[len(x)-2]
-
-		// Change in y direction
-		y = append(y, yInst)
-		y = y[1:]
-		y_change := y[len(y)-1] - y[len(y)-2]
-
-		// Detect movement
-		if count > 5 && (x_change != 0 || y_change != 0) {
-			if !mouseTouch {
-				log.Errorf("You Touched the Mouse! (Duration: %.2f minutes)", noMouseTouchTime.Minutes())
-				show_alert()
-				postTouchTimerStart = time.Now()
-				mouseTouch = true
-			}
+		// Check for any mouse movement at all
+		if magPos[0] != magPos[1] {
 			log.Warning("Mouse is moving ...")
 		}
 
-		// Elapsed time
-		noMouseTouchTime = time.Now().Sub(postTouchTimerStart)
-
-		// Reset
-		if mouseTouch && noMouseTouchTime > time.Duration(pauseGracePeriod)*time.Second {
-			log.Debug("Reseting no touch timer ...")
-			mouseTouch = false
+		// Check for movement trigger - Difference of averages is above threshold
+		if math.Abs(magPosMeans[0]-magPosMeans[1]) > sensitivity {
+			triggered = true
 		}
 
-		log.Debug(xInst, yInst, mouseTouch, noMouseTouchTime)
+		if triggered && !gracePeriod {
+			message := fmt.Sprintf("No-Touch Duration: %s", durationToString(totalNoTouchDuration))
+			log.Errorln("Triggered - ", message)
+			show_alert("You moved the mouse!", message)
+			postTouchTimerStart = time.Now()
+			gracePeriod = true
+		}
 
-		count++
+		// Elapsed time
+		totalNoTouchDuration = time.Now().Sub(postTouchTimerStart)
+
+		// Reset
+		if gracePeriod && totalNoTouchDuration > time.Duration(gracePeriodDuration)*time.Second {
+			log.Debug("Reseting total no-touch timer ...")
+			gracePeriod = false
+		}
+
+		triggered = false
 
 		// Loop delay
-		time.Sleep(200 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 	}
 	log.Info("DONE")
 }

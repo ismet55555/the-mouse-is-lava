@@ -1,4 +1,4 @@
-module github.com/ismet55555/mouse_touch
+module github.com/ismet55555/mouse-lava
 
 go 1.18
 
