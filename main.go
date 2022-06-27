@@ -84,16 +84,16 @@ func displayTextWithTime(interval float32, text []string) {
 
 // Display intro title animation
 func showIntroTitle() {
-	color.Green("================================")
+	color.HiGreen("================================")
 	titleText := []string{"    The", "       mouse", "            is"}
 	for _, word := range titleText {
-		color.Green(word)
+		color.HiGreen(word)
 		time.Sleep(time.Duration(1.0 * float32(time.Second)))
 	}
-	color.Red("               ╦  ┌─┐┬  ┬┌─┐")
-	color.Red("               ║  ├─┤└┐┌┘├─┤")
-	color.Red("               ╩═╝┴ ┴ └┘ ┴ ┴")
-	color.Green("================================")
+	color.HiRed("               ╦  ┌─┐┬  ┬┌─┐")
+	color.HiRed("               ║  ├─┤└┐┌┘├─┤")
+	color.HiRed("               ╩═╝┴ ┴ └┘ ┴ ┴")
+	color.HiGreen("================================")
 }
 
 func main() {
@@ -106,7 +106,7 @@ func main() {
 		initPause           bool    = true
 		gracePeriodDuration int     = 3
 		gracePeriod         bool    = false
-		sensitivity         float64 = 10.0
+		sensitivity         float64 = 8.0
 	)
 
 	var (
@@ -144,7 +144,7 @@ func main() {
 
 		// Check for any mouse movement at all
 		if magPos[0] != magPos[1] {
-			log.Warning("Mouse is moving ...")
+			log.Debug("Mouse is moving ...")
 		}
 
 		// Check for movement trigger - Difference of averages is above threshold
@@ -154,8 +154,9 @@ func main() {
 
 		if triggered && !gracePeriod {
 			message := fmt.Sprintf("No-Touch Duration: %s", durationToString(totalNoTouchDuration))
-			log.Errorln("Triggered - ", message)
+			log.Debug("Triggered - ", message)
 			show_alert("You moved the mouse!", message)
+			color.Red("Oh no! Lava!")
 			postTouchTimerStart = time.Now()
 			gracePeriod = true
 		}
