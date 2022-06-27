@@ -1,4 +1,8 @@
-# The Mouse is Lava
+<p align="center">
+  <img width="120" alt="portfolio_view" src="https://raw.githubusercontent.com/ismet55555/the-mouse-is-lava/main/assets/volcano.png">
+</p>
+
+<h1 align="center">The Mouse is LAVA</h1>
 
 > Don't you touch the mouse... IT'S LAVA!!
 
