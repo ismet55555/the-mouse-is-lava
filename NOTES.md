@@ -58,8 +58,13 @@ A program when started will track how often mouse has been used over time
 
 ## Plan of Attack
 
-- Add system tray icon when running
-- Make into CLI tool?
+- Systray icon as a red and grey volcano
+    - Depending if on or off
+- TOML file with encouragments and insults
+- Organize everything within packages
+    - Research what the concensus is
+    - How are other people doing it?
+- Make into CLI tool wiht cobra
 
 
 

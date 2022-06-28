@@ -183,8 +183,8 @@ func main() {
 		if triggered && !gracePeriod {
 			message := fmt.Sprintf("No-Touch Duration: %s", durationToString(totalNoTouchDuration))
 			log.Debug("Triggered - ", message)
-			show_alert("You moved the mouse!", message)
-			color.Red("Oh no! Lava!")
+			show_alert("AAAHHHGGHH! You touched the LAVA mouse!", message)
+			color.Red("Oh no! Hot LAVA! - %s", message)
 			postTouchTimerStart = time.Now()
 			gracePeriod = true
 		}
