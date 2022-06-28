@@ -110,8 +110,8 @@ func showIntroTitle() {
 	color.HiRed("               ║  ├─┤└┐┌┘├─┤")
 	color.HiRed("               ╩═╝┴ ┴ └┘ ┴ ┴")
 	color.HiGreen("================================")
-	color.HiGreen("    (Press CTRL-c to exit)\n\n")
-	color.HiGreen("================================")
+	color.HiGreen("    (Press CTRL-c to exit)")
+	color.HiGreen("================================\n\n")
 }
 
 func main() {
@@ -120,7 +120,7 @@ func main() {
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		for range c {
-			color.HiRed("\n\n Program exited. No more lava.\n\n")
+			color.HiGreen("\n\n Program exited. No more lava.\n\n")
 			os.Exit(1)
 		}
 	}()
@@ -214,7 +214,8 @@ func onExit() {
 func onReady() {
 	go func() {
 		systray.SetTemplateIcon(icon.Data, icon.Data)
-		systray.SetTitle("LAVA[00:08:45]")
+		// systray.SetTitle("LAVA[00:08:45]")
+		systray.SetTitle("LAVA")
 		systray.SetTooltip("The Mouse is LAVA")
 
 		mChecked := systray.AddMenuItemCheckbox("Turn LAVA Off", "Turn On/Off", true)
