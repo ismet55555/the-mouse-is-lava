@@ -2,13 +2,19 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math"
+	"os"
+	"os/signal"
+	"runtime"
 	"sort"
 	"time"
 
 	"github.com/fatih/color"
 	"github.com/gen2brain/beeep"
+	"github.com/getlantern/systray"
 	"github.com/go-vgo/robotgo"
+	"github.com/ismet55555/mouse-lava/icon"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,6 +24,16 @@ func init() {
 		FullTimestamp: true,
 	})
 	log.SetLevel(log.InfoLevel)
+
+	// Open system tray
+	go func() {
+		systray.Run(onReady, onExit)
+	}()
+
+	if runtime.GOOS == "windows" {
+		color.HiYellow("Sorry. Windows is not fully supported yet :/")
+		os.Exit(1)
+	}
 }
 
 // Alert the user
@@ -94,9 +110,21 @@ func showIntroTitle() {
 	color.HiRed("               ║  ├─┤└┐┌┘├─┤")
 	color.HiRed("               ╩═╝┴ ┴ └┘ ┴ ┴")
 	color.HiGreen("================================")
+	color.HiGreen("    (Press CTRL-c to exit)\n\n")
+	color.HiGreen("================================")
 }
 
 func main() {
+	// Handeling CTRL-c keyboard interrupt
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for range c {
+			color.HiRed("\n\n Program exited. No more lava.\n\n")
+			os.Exit(1)
+		}
+	}()
+
 	showIntroTitle()
 	log.Debug("START - Process ID: ", robotgo.GetPID())
 
@@ -135,7 +163,7 @@ func main() {
 			log.Debug("Initial delay: ", initElapsedTime, " / ", initGracePeriod)
 
 			if initElapsedTime > time.Duration(initGracePeriod)*time.Second {
-				fmt.Println("Mouse movement sensor is active ...")
+				log.Debug("Mouse movement sensor is active ...")
 				initPause = false
 			}
 			time.Sleep(200 * time.Millisecond)
@@ -175,4 +203,43 @@ func main() {
 		// Loop delay
 		time.Sleep(100 * time.Millisecond)
 	}
+}
+
+// System tray menu
+func onExit() {
+	fmt.Println("Clean up")
+	now := time.Now()
+	ioutil.WriteFile(fmt.Sprintf(`on_exit_%d.txt`, now.UnixNano()), []byte(now.String()), 0644)
+}
+func onReady() {
+	go func() {
+		systray.SetTemplateIcon(icon.Data, icon.Data)
+		systray.SetTitle("LAVA[00:08:45]")
+		systray.SetTooltip("The Mouse is LAVA")
+
+		mChecked := systray.AddMenuItemCheckbox("Turn LAVA Off", "Turn On/Off", true)
+		mElapsedTime := systray.AddMenuItem("0 hours 8 minutes 45 seconds", "No-touch Time")
+		mElapsedTime.Disable()
+
+		systray.AddSeparator()
+		mQuit := systray.AddMenuItem("QUIT", "Quit the whole app")
+
+		for {
+			select {
+			case <-mChecked.ClickedCh:
+				if mChecked.Checked() {
+					mChecked.Uncheck()
+					mChecked.SetTitle("Turn LAVA On")
+				} else {
+					mChecked.Check()
+					mChecked.SetTitle("Turn LAVA Off")
+				}
+			case <-mQuit.ClickedCh:
+				systray.Quit()
+				os.Exit(0)
+				// TODO: Quite and clean up
+				return
+			}
+		}
+	}()
 }
