@@ -16,6 +16,7 @@ import (
 	"github.com/go-vgo/robotgo"
 	"github.com/ismet55555/mouse-lava/icon"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 func init() {
@@ -34,6 +35,21 @@ func init() {
 		color.HiYellow("Sorry. Windows is not fully supported yet :/")
 		os.Exit(1)
 	}
+
+	// Read configurations
+	viper.SetConfigName("messages")
+	viper.AddConfigPath(".")
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Errorf("Failed reading config file: %w", err))
+	}
+	if viper.IsSet("encourage") {
+		msgEncourage := viper.GetStringSlice("encourage")
+		log.Debug(msgEncourage[0])
+		log.Debug("Successfully loaded configuration file")
+	} else {
+		log.Errorln("Failed to find encouragements")
+	}
 }
 
 // Alert the user
@@ -46,7 +62,6 @@ func show_alert(title string, message string) {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 // Calculating the mean of a array
@@ -183,8 +198,8 @@ func main() {
 		if triggered && !gracePeriod {
 			message := fmt.Sprintf("No-Touch Duration: %s", durationToString(totalNoTouchDuration))
 			log.Debug("Triggered - ", message)
-			show_alert("AAAHHHGGHH! You touched the LAVA mouse!", message)
-			color.Red("Oh no! Hot LAVA! - %s", message)
+			show_alert("Mouse LAVA!", message)
+			color.Red("Mouse LAVA! - %s", message)
 			postTouchTimerStart = time.Now()
 			gracePeriod = true
 		}
