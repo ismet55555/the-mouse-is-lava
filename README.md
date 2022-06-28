@@ -21,14 +21,14 @@ If you are trying to not use your mouse, this little program is for you! This pr
 3. Run it
     - `./mouse-lava`
 
-4. Once you are tired of it end with `CTRL-c`
+4. Once you are tired of it, end with `CTRL-c`
 
 
 ## Notes
 
 - Obviously system notification must be turned on / unmuted to recieve notifications
 - MacOS users may have to give the terminal application access
-    - System Preferences > Security & Privacy > Privacy > Accessibility
+    - *System Preferences > Security & Privacy > Privacy > Accessibility*
     - Unlock on bottom left corner
-    - Check terminal application you are running this from
+    - Add a checkmark to the terminal application you are running this program
 
