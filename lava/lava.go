@@ -30,10 +30,6 @@ type Configs struct {
 	Sensitivity         float64
 }
 
-func (lava *Lava) PrintSomething(something string) {
-	fmt.Println(something)
-}
-
 // Display intro title animation
 func (lava *Lava) AnimateIntroTitle() {
 	color.HiGreen("================================")
@@ -91,14 +87,16 @@ func (lava *Lava) systrayOnExit() {
 	ioutil.WriteFile(fmt.Sprintf(`on_exit_%d.txt`, now.UnixNano()), []byte(now.String()), 0644)
 }
 
+// Entrypoint to program execution
 func (lava *Lava) Start() {
-	// Configurations viper -> configs
+	// Load configurations (viper -> configs)
 	configs := Configs{}
 	viper.Unmarshal(&configs)
 	lava.Configs = configs
 	log.Debugln("Loaded configurations: ", lava.Configs)
 
 	// Open system tray
+	// TODO: Add configuration setting
 	go func() {
 		systray.Run(lava.systrayOnReady, lava.systrayOnExit)
 	}()
@@ -135,13 +133,14 @@ func (lava *Lava) Start() {
 		// Get the XY mouse pixel coordinates
 		xPos, yPos := robotgo.GetMousePos()
 
-		// Get the magnitude - sqrt(x^2 + y^2)
+		// Get the magnitude of mouse position - sqrt(x^2 + y^2)
 		mag := int(math.Sqrt(math.Pow(float64(xPos), 2) + math.Pow(float64(yPos), 2)))
 		magPos = append(magPos, mag)[1:]
 		magPosSet = append(magPosSet, magPos[1])[1:]
 		magPosMeans = append(magPosMeans, utils.ArrayMean(magPosSet))[1:]
 
 		// Initial grace period with no mouse touch eveluation
+		// FIXME: When InitPause is false, it triggers immediately
 		if lava.Configs.InitPause {
 			initElapsedTime := time.Now().Sub(initTimerStart)
 			log.Debug("Initial delay: ", initElapsedTime, " / ", lava.Configs.InitGracePeriod)
@@ -185,7 +184,6 @@ func (lava *Lava) Start() {
 			log.Debug("Reseting total no-touch timer ...")
 			lava.Configs.GracePeriod = false
 		}
-
 		triggered = false
 
 		// Loop delay
