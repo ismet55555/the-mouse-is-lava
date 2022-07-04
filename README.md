@@ -19,7 +19,7 @@ If you are trying to not use your mouse, this little program is for you! This pr
     - Note: Might need to install build dependencies: https://github.com/go-vgo/robotgo#requirements
 
 3. Run it
-    - `./mouse-lava`
+    - `./the-mouse-is-lava`
 
 4. Once you are tired of it, end with `CTRL-c`
 
