@@ -1,0 +1,9 @@
+# -*- mode: yaml -*-
+# vim: set filetype=yaml
+---
+initAnimation: true
+initGracePeriod: 2
+initPause: true
+gracePeriodDuration: 3
+gracePeriod: false
+sensitivity: 8.0

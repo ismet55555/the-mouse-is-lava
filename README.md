@@ -31,4 +31,5 @@ If you are trying to not use your mouse, this little program is for you! This pr
     - *System Preferences > Security & Privacy > Privacy > Accessibility*
     - Unlock on bottom left corner
     - Add a checkmark to the terminal application you are running this program
+- Adjust default values in `.the-mouse-is-lava`
 
