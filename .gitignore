@@ -24,3 +24,7 @@ mouse-lava
 the-mouse-is-lava
 
 *.vim
+
+*.log
+*.pid
+

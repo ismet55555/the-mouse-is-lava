@@ -33,8 +33,6 @@ var rootCmd = &cobra.Command{
 	Use:   "the-mouse-is-lava",
 	Short: "A brief description of your application",
 	Long:  `Long description here`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		l := lava.Lava{}
 		l.Start()
@@ -50,19 +48,23 @@ func Execute() {
 	}
 }
 
+// Initial setup
+// Here you will define your flags and configuration settings.
+// Cobra supports persistent flags, which, if defined here,
+// will be global for your application.
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
+    // Persistent CLI flags - Will be global for application
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.the-mouse-is-lava.yaml)")
+    viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("systray", "s", false, "Enable system systray icon")
+	// Local CLI flags - Will only run when this action is called directly not all commands
+	rootCmd.Flags().BoolP("no-systray", "s", false, "Enable system systray icon")
+    viper.BindPFlag("noSystray", rootCmd.Flags().Lookup("no-systray"))
+
 	rootCmd.Flags().BoolP("detach", "d", false, "Detach process to run in background")
+    viper.BindPFlag("detach", rootCmd.Flags().Lookup("detach"))
 
 	// Configure logger
 	log.SetFormatter(&log.TextFormatter{
@@ -72,41 +74,42 @@ func init() {
 
 	// Check for windows platform
 	if runtime.GOOS == "windows" {
-		color.HiYellow("Sorry. Windows is not fully supported yet :/")
+		color.HiYellow("Sorry. Windows is not fully supported yet. Please check back with later version")
 		os.Exit(1)
 	}
 }
 
 // initConfig reads in config file and ENV variables if set.
+// Default configuration values
 func initConfig() {
-	// Default configuration values
-	viper.SetDefault("initAnimation", true)
-	viper.SetDefault("initGracePeriod", 2)
-	viper.SetDefault("initPause", true)
-	viper.SetDefault("gracePeriodDuration", 3)
-	viper.SetDefault("gracePeriod", false)
-	viper.SetDefault("sensitivity", 8.0)
+    viper.SetDefault("initAnimation", true)
+    viper.SetDefault("initGracePeriod", 2)
+    viper.SetDefault("initPause", true)
+    viper.SetDefault("gracePeriodDuration", 3)
+    viper.SetDefault("gracePeriod", false)
+    viper.SetDefault("sensitivity", 8.0)
+    viper.SetDefault("enableSystray", true)
 
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
+    if cfgFile != "" {
+        // Use config file from the flag.
+        viper.SetConfigFile(cfgFile)
+    } else {
+        // Find home directory.
+        home, err := os.UserHomeDir()
+        cobra.CheckErr(err)
 
-		// Search config in home directory with name ".the-mouse-is-lava" (without extension).
-		viper.AddConfigPath(home)
-		viper.AddConfigPath(".")
-		viper.SetConfigType("yaml")
-		viper.SetConfigName(".the-mouse-is-lava")
-	}
+        // Search config in home directory with name ".the-mouse-is-lava" (without extension).
+        viper.AddConfigPath(home)
+        viper.AddConfigPath(".")
+        viper.SetConfigType("yaml")
+        viper.SetConfigName(".the-mouse-is-lava")
+    }
 
-	// Read in environment variables that match prefix
-	viper.AutomaticEnv()
+    // Read in environment variables that match prefix
+    viper.AutomaticEnv()
 
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		log.Debug("Using config file:", viper.ConfigFileUsed())
-	}
+    // If a config file is found, read it in.
+    if err := viper.ReadInConfig(); err == nil {
+        log.Debug("Using config file:", viper.ConfigFileUsed())
+    }
 }

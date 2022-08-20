@@ -1,8 +1,0 @@
-# -*- mode: yaml -*-
-# vim: set filetype=yaml
----
-initGracePeriod: 2
-initPause: false
-gracePeriodDuration: 3
-gracePeriod: false
-sensitivity: 8.0

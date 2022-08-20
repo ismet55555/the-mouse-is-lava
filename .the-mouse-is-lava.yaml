@@ -7,3 +7,5 @@ initPause: true
 gracePeriodDuration: 3
 gracePeriod: false
 sensitivity: 8.0
+enableSystray: true
+

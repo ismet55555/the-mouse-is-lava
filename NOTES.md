@@ -4,29 +4,34 @@
 A program when started will track how often mouse has been used over time
 
 
+## Potential Tools
+
+- Automation - robotgo
+    - Example Project: https://github.com/ruanbekker/golang-autoclicker
+- System dialogs - zenity
+- System icon in notification area - systray
+- System notificaiton - beeep
+- Make CLI - cobra
+- Working with configurations - viper
+- Detach process - go-daemon
+
+
 ## Sub-Ideas
 
 - Name: The mouse is lava
 
-- System icon shows mouse usage
-    - Number of times - keep a cound
-    - Amount of time used
-    - No mouse time streaks
-        - Contrasted to what? Keybaords time? System up time?
-
 - Stopping it
-    - Ctrl-C on binary
+    - Ctrl-C on binary - if not detached
     - Keyboard combination (CTRL-ALT-SHIFT-q ?? or something rare like this)
     - CLI find process and stopps it
+    - the-mouse-is-lava exit
 
 - Pause / Resume Program
     - Keyboard combination?
     - CLI can do this
 
 - Save statistics in local file?
-    - Per session
-
-- Potentially a CLI tool with cobra
+    - Per session?
 
 - Sound when touching mouse? Notification? Something annoying?
 - Notification has dorky insults
@@ -41,25 +46,92 @@ A program when started will track how often mouse has been used over time
     - Slack
     - etc
 
-- CLI option for silent, no messages in terminall
-
-- Detach mode? Only one session running?
-    - Ability to pause, stop though CLI
+- When not detached
+    - Output json items to be consumed by another process
 
 
-## Potential Tools
+## System Tray
 
-- Automation - robotgo
-    - Example Project: https://github.com/ruanbekker/golang-autoclicker
-- System dialogs - zenity
-- System icon in notification area - systray
-- System notificaiton - beeep
-- Make CLI - cobra
-- Working with configurations - viper
+- Controls
+    - Pause/resume
+    - Quit
+
+- System icon shows mouse usage
+    - Number of times - keep a count
+    - Amount of time used
+    - No mouse time streaks
+        - Contrasted to what? Keybaords time? System up time?
+
+
+## Daemonize/Detach Go Program
+
+- NOTE: In order for all sub-commands to make sense, has to be detached!
+
+- Either need multiple binaries or program has to call itself with a subcommand?
+    - subcommand will be visible?
+    - maybe --quite flag?
+
+- How to keep reference of background process
+    - Name of process
+    - Number of process
+    - Local file that keeps track? naw
+    - Windows?
+
+- Solution: https://socketloop.com/tutorials/golang-daemonizing-a-simple-web-server-process-example
+
+
+## CLI Menu
+
+- ROOT
+    - has hidden flag to start background process
+        - https://pkg.go.dev/github.com/spf13/pflag?utm_source=godoc#FlagSet.MarkHidden
+        -
+- start - Setup and start monitor
+    - CLI option for silent, no messages in terminal
+    - Attach mode? Only one session running?
+- status - Get all info and status of the program
+    - Get process ID and Name
+    - Version number
+    - Similar look as systemctl status
+    - stats
+    - Show location of configuration file
+    - Nicely formatted to show off
+    - `--json` - output stats in JSON format
+- pause
+- resume
+- exit - Stop and quit everything
 
 
 ## Plan of Attack
 
+- Try out go-daemon
+    - https://github.com/sevlyar/go-daemon/blob/master/examples/cmd/gd-simple/simple.go
+- Try it out in cobra app
+- If go-daemon does not work try russian guy post approach
+    - https://socketloop.com/tutorials/golang-daemonizing-a-simple-web-server-process-example
+    - Will need hidden flag on root command in cobra
+- Save the PID to temporary file on os:
+    - When process dies or ends, remove the tempfile with it
+    - If tempfile is not there, quit the program, to prevent multiple lava mouse runs
+    - https://gobyexample.com/temporary-files-and-directories
+    - https://gosamples.dev/temp-file/
 - Systray icon as a red and grey volcano
     - Depending if on or off
 
+# DUMP
+
+## Process stuff
+```go
+currentPID := robotgo.GetPID()
+pidExists, error := robotgo.PidExists(currentPID)
+currentProcessName, error := robotgo.FindName(currentPID)
+fmt.Println(currentPID)
+fmt.Println(pidExists)
+fmt.Println(currentProcessName)
+processIds, error := robotgo.FindIds("lava")
+if error != nil {
+    panic(error)
+}
+fmt.Println(processIds)
+os.Exit(0)
+```

@@ -11,6 +11,7 @@ import (
 // Calculating the mean of a array
 func ArrayMean(in []int) float64 {
 	var sum float64 = 0.0
+
 	for _, item := range in {
 		sum += float64(item)
 	}
