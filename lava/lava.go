@@ -15,6 +15,7 @@ import (
 	"github.com/getlantern/systray"
 	"github.com/getlantern/systray/example/icon"
 	"github.com/go-vgo/robotgo"
+	"github.com/sevlyar/go-daemon"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -28,6 +29,7 @@ type Configs struct {
 	GracePeriodDuration int
 	GracePeriod         bool
 	Sensitivity         float64
+	EnableSystray       bool
 }
 
 // Display intro title animation
@@ -95,28 +97,78 @@ func (lava *Lava) Start() {
 	lava.Configs = configs
 	log.Debugln("Loaded configurations: ", lava.Configs)
 
+	// currentPID := robotgo.GetPID()
+	// pidExists, error := robotgo.PidExists(currentPID)
+	// currentProcessName, error := robotgo.FindName(currentPID)
+	// fmt.Println(currentPID)
+	// fmt.Println(pidExists)
+	// fmt.Println(currentProcessName)
+	// processIds, error := robotgo.FindIds("lava")
+	// if error != nil {
+	// 	panic(error)
+	// }
+	// fmt.Println(processIds)
+	// os.Exit(0)
+
 	// Open system tray
-	// TODO: Add configuration setting
-	go func() {
-		systray.Run(lava.systrayOnReady, lava.systrayOnExit)
-	}()
+	if !viper.GetBool("noSystray") {
+		go func() {
+			systray.Run(lava.systrayOnReady, lava.systrayOnExit)
+		}()
+	} else {
+		log.Debug("Systray is off")
+	}
 
 	// Animate Intro Title
-	if lava.Configs.InitAnimation {
+	if lava.Configs.InitAnimation && !viper.GetBool("detach") {
 		lava.AnimateIntroTitle()
 	}
 
-	// Handeling CTRL-c keyboard interrupt
+	// Detach process to make daemon
+	if viper.GetBool("detach") {
+		fmt.Println("Process detached ... ")
+		cntxt := &daemon.Context{
+			PidFileName: "mouse.pid",
+			PidFilePerm: 0644,
+			LogFileName: "mouse.log",
+			LogFilePerm: 0640,
+			WorkDir:     "./",
+			Umask:       027,
+			Args:        []string{"[mouse lava detached]"},
+		}
+
+		d, err := cntxt.Reborn()
+		if err != nil {
+			log.Fatal("Unable to run: ", err)
+		}
+		if d != nil {
+			return
+		}
+		defer cntxt.Release()
+
+		log.Print("- - - - - - - - - - - - - - -")
+		log.Print("Mouse lava started")
+	}
+
+	// Initiate main loop
+	lava.mainLoop()
+}
+
+// Main loop
+func (lava *Lava) mainLoop() {
+	// Handeling CTRL-c keyboard interrupt with go routine
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		for range c {
-			color.HiGreen("\n\n Program exited. No more lava.\n\n")
+			color.HiGreen("\n\nProgram exited. No more lava.\n\n")
 			os.Exit(1)
 		}
 	}()
 
 	// Pre-allocate variables
+	// TODO: Make some of these object properties
+	// TODO: Maybe move these defaults to its own file
 	var (
 		magPosSet                            = make([]int, 11)
 		magPos                               = make([]int, 2)
@@ -129,6 +181,7 @@ func (lava *Lava) Start() {
 		longestNoTouchDuration time.Duration = time.Duration(0)
 	)
 
+	// Main loop
 	for {
 		// Get the XY mouse pixel coordinates
 		xPos, yPos := robotgo.GetMousePos()
