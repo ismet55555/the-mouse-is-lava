@@ -41,13 +41,16 @@ func ArrayAllItemsEqual(in []int) bool {
 }
 
 // Duration to time string
-func DurationToString(duration time.Duration) string {
+// Format must have hours, minutes, seconds
+//    Format example:   "%01d hours : %01d minutes : %01d seconds"
+//    Format example:   "%01d hrs %01d minutes %01d seconds"
+func DurationToString(duration time.Duration, format string) string {
 	hrs := duration / time.Hour
 	duration -= hrs * time.Hour
 	mins := duration / time.Minute
 	duration -= mins * time.Minute
 	secs := duration / time.Second
-	return fmt.Sprintf("%01d hours : %01d minutes : %01d seconds", hrs, mins, secs)
+	return fmt.Sprintf(format, hrs, mins, secs)
 }
 
 // Display text at a time interval

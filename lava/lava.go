@@ -8,20 +8,27 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/ismet55555/the-mouse-is-lava/assets/iconOFF"
+	"github.com/ismet55555/the-mouse-is-lava/assets/iconON"
 	"github.com/ismet55555/the-mouse-is-lava/utils"
 	"github.com/spf13/viper"
 
 	"github.com/fatih/color"
 	"github.com/getlantern/systray"
-	"github.com/getlantern/systray/example/icon"
 	"github.com/go-vgo/robotgo"
 	"github.com/sevlyar/go-daemon"
 	log "github.com/sirupsen/logrus"
 )
 
 type Lava struct {
-	Configs Configs
+	Configs                Configs
+	lavaOn                 bool
+	totalNoTouchDuration   time.Duration
+	totalNoTouchCount      int
+	longestNoTouchDuration time.Duration
+	systrayElapsedTime     *systray.MenuItem
 }
+
 type Configs struct {
 	InitAnimation       bool
 	InitGracePeriod     int
@@ -51,14 +58,13 @@ func (lava *Lava) AnimateIntroTitle() {
 // Systray setup
 func (lava *Lava) systrayOnReady() {
 	go func() {
-		systray.SetTemplateIcon(icon.Data, icon.Data)
-		// systray.SetTitle("LAVA[00:08:45]")
+		systray.SetTemplateIcon(iconON.Data, iconON.Data)
 		systray.SetTitle("LAVA")
 		systray.SetTooltip("The Mouse is LAVA")
 
 		mChecked := systray.AddMenuItemCheckbox("Turn LAVA Off", "Turn On/Off", true)
-		mElapsedTime := systray.AddMenuItem("0 hours 8 minutes 45 seconds", "No-touch Time")
-		mElapsedTime.Disable()
+		lava.systrayElapsedTime = systray.AddMenuItem("-", "No-touch Time")
+		lava.systrayElapsedTime.Disable()
 
 		systray.AddSeparator()
 		mQuit := systray.AddMenuItem("QUIT", "Quit the whole app")
@@ -67,16 +73,22 @@ func (lava *Lava) systrayOnReady() {
 			select {
 			case <-mChecked.ClickedCh:
 				if mChecked.Checked() {
+					systray.SetIcon(iconOFF.Data)
 					mChecked.Uncheck()
 					mChecked.SetTitle("Turn LAVA On")
+					lava.lavaOn = false
+					log.Debug("Monitoring turned OFF via systray")
 				} else {
+					systray.SetIcon(iconON.Data)
 					mChecked.Check()
 					mChecked.SetTitle("Turn LAVA Off")
+					lava.lavaOn = true
+					log.Debug("Monitoring turned ON via systray")
 				}
 			case <-mQuit.ClickedCh:
+				// TODO: Quit and clean up
 				systray.Quit()
 				os.Exit(0)
-				// TODO: Quit and clean up
 				return
 			}
 		}
@@ -97,19 +109,6 @@ func (lava *Lava) Start() {
 	lava.Configs = configs
 	log.Debugln("Loaded configurations: ", lava.Configs)
 
-	// currentPID := robotgo.GetPID()
-	// pidExists, error := robotgo.PidExists(currentPID)
-	// currentProcessName, error := robotgo.FindName(currentPID)
-	// fmt.Println(currentPID)
-	// fmt.Println(pidExists)
-	// fmt.Println(currentProcessName)
-	// processIds, error := robotgo.FindIds("lava")
-	// if error != nil {
-	// 	panic(error)
-	// }
-	// fmt.Println(processIds)
-	// os.Exit(0)
-
 	// Open system tray
 	if !viper.GetBool("noSystray") {
 		go func() {
@@ -125,12 +124,13 @@ func (lava *Lava) Start() {
 	}
 
 	// Detach process to make daemon
+    // NOTE: To force quit: kill `cat lava_mouse.pid`
 	if viper.GetBool("detach") {
-		fmt.Println("Process detached ... ")
+		log.Debug("Program detached. Running in background ... ")
 		cntxt := &daemon.Context{
-			PidFileName: "mouse.pid",
+			PidFileName: "lava_mouse.pid",
 			PidFilePerm: 0644,
-			LogFileName: "mouse.log",
+			LogFileName: "lava_mouse.log",
 			LogFilePerm: 0640,
 			WorkDir:     "./",
 			Umask:       027,
@@ -146,8 +146,9 @@ func (lava *Lava) Start() {
 		}
 		defer cntxt.Release()
 
-		log.Print("- - - - - - - - - - - - - - -")
-		log.Print("Mouse lava started")
+		log.Print("*************************************************")
+		log.Print("Mouse lava started as detached background process")
+		log.Print("*************************************************")
 	}
 
 	// Initiate main loop
@@ -156,6 +157,8 @@ func (lava *Lava) Start() {
 
 // Main loop
 func (lava *Lava) mainLoop() {
+	lava.lavaOn = true
+
 	// Handeling CTRL-c keyboard interrupt with go routine
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -167,19 +170,18 @@ func (lava *Lava) mainLoop() {
 	}()
 
 	// Pre-allocate variables
-	// TODO: Make some of these object properties
-	// TODO: Maybe move these defaults to its own file
 	var (
-		magPosSet                            = make([]int, 11)
-		magPos                               = make([]int, 2)
-		magPosMeans                          = make([]float64, 2)
-		initTimerStart         time.Time     = time.Now()
-		postTouchTimerStart    time.Time     = time.Now()
-		triggered              bool          = false
-		totalNoTouchDuration   time.Duration = time.Duration(0)
-		totalNoTouchCount      int           = 0
-		longestNoTouchDuration time.Duration = time.Duration(0)
+		magPosSet                     = make([]int, 11)
+		magPos                        = make([]int, 2)
+		magPosMeans                   = make([]float64, 2)
+		initTimerStart      time.Time = time.Now()
+		postTouchTimerStart time.Time = time.Now()
+		triggered           bool      = false
 	)
+
+	lava.totalNoTouchDuration = time.Duration(0)
+	lava.totalNoTouchCount = 0
+	lava.longestNoTouchDuration = time.Duration(0)
 
 	// Main loop
 	for {
@@ -193,7 +195,6 @@ func (lava *Lava) mainLoop() {
 		magPosMeans = append(magPosMeans, utils.ArrayMean(magPosSet))[1:]
 
 		// Initial grace period with no mouse touch eveluation
-		// FIXME: When InitPause is false, it triggers immediately
 		if lava.Configs.InitPause {
 			initElapsedTime := time.Now().Sub(initTimerStart)
 			log.Debug("Initial delay: ", initElapsedTime, " / ", lava.Configs.InitGracePeriod)
@@ -216,12 +217,12 @@ func (lava *Lava) mainLoop() {
 			triggered = true
 		}
 
-		if triggered && !lava.Configs.GracePeriod {
-			totalNoTouchCount++
-			if totalNoTouchDuration > longestNoTouchDuration {
-				longestNoTouchDuration = totalNoTouchDuration
+		if lava.lavaOn && triggered && !lava.Configs.GracePeriod {
+			lava.totalNoTouchCount++
+			if lava.totalNoTouchDuration > lava.longestNoTouchDuration {
+				lava.longestNoTouchDuration = lava.totalNoTouchDuration
 			}
-			message := fmt.Sprintf("No-Touch Duration: %s", utils.DurationToString(totalNoTouchDuration))
+			message := fmt.Sprintf("No-Touch Duration: %s", utils.DurationToString(lava.totalNoTouchDuration, "%01d hours : %01d minutes : %01d seconds"))
 			log.Debug("Triggered - ", message)
 			utils.ShowAlert("Mouse LAVA!", message)
 			color.Red("Mouse LAVA! - %s", message)
@@ -230,10 +231,19 @@ func (lava *Lava) mainLoop() {
 		}
 
 		// Elapsed time
-		totalNoTouchDuration = time.Now().Sub(postTouchTimerStart)
+		lava.totalNoTouchDuration = time.Now().Sub(postTouchTimerStart)
+
+		// Update systray
+        if !viper.GetBool("noSystray") {
+            if lava.lavaOn {
+                lava.systrayElapsedTime.SetTitle(utils.DurationToString(lava.totalNoTouchDuration, "%01d hours : %01d minutes : %01d seconds"))
+            } else {
+                lava.systrayElapsedTime.SetTitle("-")
+            }
+        }
 
 		// Reset
-		if lava.Configs.GracePeriod && totalNoTouchDuration > time.Duration(lava.Configs.GracePeriodDuration)*time.Second {
+		if lava.Configs.GracePeriod && lava.totalNoTouchDuration > time.Duration(lava.Configs.GracePeriodDuration)*time.Second {
 			log.Debug("Reseting total no-touch timer ...")
 			lava.Configs.GracePeriod = false
 		}

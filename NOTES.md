@@ -104,17 +104,6 @@ A program when started will track how often mouse has been used over time
 
 ## Plan of Attack
 
-- Try out go-daemon
-    - https://github.com/sevlyar/go-daemon/blob/master/examples/cmd/gd-simple/simple.go
-- Try it out in cobra app
-- If go-daemon does not work try russian guy post approach
-    - https://socketloop.com/tutorials/golang-daemonizing-a-simple-web-server-process-example
-    - Will need hidden flag on root command in cobra
-- Save the PID to temporary file on os:
-    - When process dies or ends, remove the tempfile with it
-    - If tempfile is not there, quit the program, to prevent multiple lava mouse runs
-    - https://gobyexample.com/temporary-files-and-directories
-    - https://gosamples.dev/temp-file/
 - Systray icon as a red and grey volcano
     - Depending if on or off
 
