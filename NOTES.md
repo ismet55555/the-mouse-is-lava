@@ -104,8 +104,7 @@ A program when started will track how often mouse has been used over time
 
 ## Plan of Attack
 
-- Systray icon as a red and grey volcano
-    - Depending if on or off
+- Annoying Messages!
 
 # DUMP
 

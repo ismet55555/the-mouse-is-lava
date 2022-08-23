@@ -32,7 +32,15 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "the-mouse-is-lava",
 	Short: "A little program that helps you keep your fingers off the mouse",
-	Long:  `This program helps you to train yourself to not touch the mouse by annoying you`,
+	Long:  `==========================================
+    The
+       mouse
+            is
+               ╦  ┌─┐┬  ┬┌─┐
+               ║  ├─┤└┐┌┘├─┤
+               ╩═╝┴ ┴ └┘ ┴ ┴
+==========================================
+This stupid program helps you keep your fingers off the mouse`,
 	Run: func(cmd *cobra.Command, args []string) {
 		l := lava.Lava{}
 		l.Start()
