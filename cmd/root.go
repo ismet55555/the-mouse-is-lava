@@ -31,8 +31,8 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "the-mouse-is-lava",
-	Short: "A brief description of your application",
-	Long:  `Long description here`,
+	Short: "A little program that helps you keep your fingers off the mouse",
+	Long:  `This program helps you to train yourself to not touch the mouse by annoying you`,
 	Run: func(cmd *cobra.Command, args []string) {
 		l := lava.Lava{}
 		l.Start()
@@ -53,35 +53,46 @@ func Execute() {
 // Cobra supports persistent flags, which, if defined here,
 // will be global for your application.
 func init() {
+	// Check for windows platform
+	if runtime.GOOS == "windows" {
+		color.HiYellow("Sorry. Windows is not fully supported yet. Please check back with later version")
+		os.Exit(1)
+	}
+
 	cobra.OnInitialize(initConfig)
 
     // Persistent CLI flags - Will be global for application
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.the-mouse-is-lava.yaml)")
     viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
 
+	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Verbose debug logs")
+    viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
+
+
 	// Local CLI flags - Will only run when this action is called directly not all commands
-	rootCmd.Flags().BoolP("no-systray", "s", false, "Enable system systray icon")
+	rootCmd.Flags().Bool("no-systray", false, "Disable system systray menu")
     viper.BindPFlag("noSystray", rootCmd.Flags().Lookup("no-systray"))
 
-	rootCmd.Flags().BoolP("detach", "d", false, "Detach process to run in background")
-    viper.BindPFlag("detach", rootCmd.Flags().Lookup("detach"))
+	rootCmd.Flags().Bool("no-intro", false, "Disable cool intro animation")
+    viper.BindPFlag("noIntro", rootCmd.Flags().Lookup("no-intro"))
 
+	rootCmd.Flags().Bool("detach", false, "Detach process to run in background")
+    viper.BindPFlag("detach", rootCmd.Flags().Lookup("detach"))
+}
+
+// initConfig reads in config file and ENV variables if set.
+func initConfig() {
 	// Configure logger
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp: true,
 	})
-	log.SetLevel(log.InfoLevel)
+    if viper.GetBool("verbose") {
+        log.SetLevel(log.DebugLevel)
+    } else {
+        log.SetLevel(log.InfoLevel)
+    }
 
-	// Check for windows platform
-	if runtime.GOOS == "windows" {
-		color.HiYellow("Sorry. Windows is not fully supported yet. Please check back with later version")
-		os.Exit(1)
-	}
-}
-
-// initConfig reads in config file and ENV variables if set.
-// Default configuration values
-func initConfig() {
+    // Default configuration values
     viper.SetDefault("initAnimation", true)
     viper.SetDefault("initGracePeriod", 2)
     viper.SetDefault("initPause", true)

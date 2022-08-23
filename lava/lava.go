@@ -45,7 +45,7 @@ func (lava *Lava) AnimateIntroTitle() {
 	titleText := []string{"    The", "       mouse", "            is"}
 	for _, word := range titleText {
 		color.HiGreen(word)
-		time.Sleep(time.Duration(1.0 * float32(time.Second)))
+		time.Sleep(time.Duration(0.6 * float32(time.Second)))
 	}
 	color.HiRed("               ╦  ┌─┐┬  ┬┌─┐")
 	color.HiRed("               ║  ├─┤└┐┌┘├─┤")
@@ -63,7 +63,7 @@ func (lava *Lava) systrayOnReady() {
 		systray.SetTooltip("The Mouse is LAVA")
 
 		mChecked := systray.AddMenuItemCheckbox("Turn LAVA Off", "Turn On/Off", true)
-		lava.systrayElapsedTime = systray.AddMenuItem("-", "No-touch Time")
+		lava.systrayElapsedTime = systray.AddMenuItem("Off", "Mouse No-touch Time")
 		lava.systrayElapsedTime.Disable()
 
 		systray.AddSeparator()
@@ -109,6 +109,12 @@ func (lava *Lava) Start() {
 	lava.Configs = configs
 	log.Debugln("Loaded configurations: ", lava.Configs)
 
+    // Cannot have no systray and detached
+	if viper.GetBool("noSystray") && viper.GetBool("detach") {
+        color.HiRed("Unable to --detach with --nosystray menu")
+        os.Exit(1)
+    }
+
 	// Open system tray
 	if !viper.GetBool("noSystray") {
 		go func() {
@@ -119,9 +125,11 @@ func (lava *Lava) Start() {
 	}
 
 	// Animate Intro Title
-	if lava.Configs.InitAnimation && !viper.GetBool("detach") {
-		lava.AnimateIntroTitle()
-	}
+	if !viper.GetBool("noIntro") {
+        if lava.Configs.InitAnimation && !viper.GetBool("detach") {
+            lava.AnimateIntroTitle()
+        }
+    }
 
 	// Detach process to make daemon
     // NOTE: To force quit: kill `cat lava_mouse.pid`
@@ -238,7 +246,7 @@ func (lava *Lava) mainLoop() {
             if lava.lavaOn {
                 lava.systrayElapsedTime.SetTitle(utils.DurationToString(lava.totalNoTouchDuration, "%01d hours : %01d minutes : %01d seconds"))
             } else {
-                lava.systrayElapsedTime.SetTitle("-")
+                lava.systrayElapsedTime.SetTitle("Off")
             }
         }
 
