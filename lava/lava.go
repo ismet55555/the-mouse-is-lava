@@ -10,6 +10,7 @@ import (
 
 	"github.com/ismet55555/the-mouse-is-lava/assets/iconOFF"
 	"github.com/ismet55555/the-mouse-is-lava/assets/iconON"
+	"github.com/ismet55555/the-mouse-is-lava/messages"
 	"github.com/ismet55555/the-mouse-is-lava/utils"
 	"github.com/spf13/viper"
 
@@ -24,6 +25,7 @@ type Lava struct {
 	Configs                Configs
 	lavaOn                 bool
 	totalNoTouchDuration   time.Duration
+    totalPauseDuration     time.Duration
 	totalNoTouchCount      int
 	longestNoTouchDuration time.Duration
 	systrayElapsedTime     *systray.MenuItem
@@ -67,7 +69,7 @@ func (lava *Lava) systrayOnReady() {
 		lava.systrayElapsedTime.Disable()
 
 		systray.AddSeparator()
-		mQuit := systray.AddMenuItem("QUIT", "Quit the whole app")
+		mQuit := systray.AddMenuItem("Quit", "Quit the whole app")
 
 		for {
 			select {
@@ -188,6 +190,7 @@ func (lava *Lava) mainLoop() {
 	)
 
 	lava.totalNoTouchDuration = time.Duration(0)
+    lava.totalPauseDuration = time.Duration(0)
 	lava.totalNoTouchCount = 0
 	lava.longestNoTouchDuration = time.Duration(0)
 
@@ -230,10 +233,18 @@ func (lava *Lava) mainLoop() {
 			if lava.totalNoTouchDuration > lava.longestNoTouchDuration {
 				lava.longestNoTouchDuration = lava.totalNoTouchDuration
 			}
-			message := fmt.Sprintf("No-Touch Duration: %s", utils.DurationToString(lava.totalNoTouchDuration, "%01d hours : %01d minutes : %01d seconds"))
-			log.Debug("Triggered - ", message)
-			utils.ShowAlert("Mouse LAVA!", message)
-			color.Red("Mouse LAVA! - %s", message)
+            // Generate Messsage
+            // TODO: Some logic on when to switch from insult to encouragment
+            randMessage := utils.RandArrayItem(messages.Insult)
+
+            // Concatenate prompt
+			prompt := fmt.Sprintf("%s - No-Touch Duration: %s", randMessage, utils.DurationToString(lava.totalNoTouchDuration, "%01d hours : %01d minutes : %01d seconds"))
+
+            // Show system alert prompt
+			utils.ShowAlert("Mouse LAVA!", prompt)
+
+			color.Red("Mouse LAVA! - %s", prompt)
+			log.Debug("Triggered - ", prompt)
 			postTouchTimerStart = time.Now()
 			lava.Configs.GracePeriod = true
 		}

@@ -104,7 +104,27 @@ A program when started will track how often mouse has been used over time
 
 ## Plan of Attack
 
-- Annoying Messages!
+- Keeping up with scores locally
+    - JSON file? JSONC file?
+    - Read then write
+    - Where to save it?
+    - Need some kind of encryption or at least not call is .json
+    - Linux / MacOS:
+        - /etc/the-mouse-is-lava/data ?
+    - Windows:
+        - ?
+
+- Bug: When paused, time should not increase
+- Bug: When os is in sleep or screen lock, don't count that
+- Feature: Point system? Encouragment reminders at certain time marks: 1, 5, 10, 20, 30, 1 hour, etc...
+- Feature: Option that does not interact with system but only outputs in commad line
+    - cannot be detached
+
+
+
+
+
+
 
 # DUMP
 

@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"sort"
 	"time"
+    "math/rand"
 
 	"github.com/gen2brain/beeep"
 )
 
-// Calculating the mean of a array
+// Calculating the mean of a integer array
 func ArrayMean(in []int) float64 {
 	var sum float64 = 0.0
 
@@ -18,7 +19,7 @@ func ArrayMean(in []int) float64 {
 	return sum / float64(len(in))
 }
 
-// Calculate the median of an array
+// Calculate the median of an integer array
 func ArrayMedian(in []int) int {
 	sort.Ints(in)
 	indexHalf := len(in) / 2
@@ -29,7 +30,13 @@ func ArrayMedian(in []int) int {
 	}
 }
 
-// Check if all items in slice are the same
+// Get random item from string array
+func RandArrayItem(in  []string) string {
+    randomIndex := rand.Intn(len(in))
+    return in[randomIndex]
+}
+
+// Check if all items in slice are the same in integer array
 func ArrayAllItemsEqual(in []int) bool {
 	first := in[0]
 	for _, item := range in {

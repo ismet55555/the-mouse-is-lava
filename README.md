@@ -6,7 +6,7 @@
 
 > Don't you touch the mouse... IT'S LAVA!!
 
-If you are trying to not use your mouse, this little program is for you! This program is aimed to help you use your mouse less by sending you a anoying system notification every time you move your mouse. 
+If you are trying to not use your mouse, this little program is for you! This program is aimed to help you use your mouse less by sending you a anoying system notification every time you move your mouse.
 
 ## Try it
 
@@ -32,4 +32,5 @@ If you are trying to not use your mouse, this little program is for you! This pr
     - Unlock on bottom left corner
     - Add a checkmark to the terminal application you are running this program
 - Adjust default values in `.the-mouse-is-lava`
-
+- Systray shortcut
+    - Ubuntu - `Super + V + Arrow key`
